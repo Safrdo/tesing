@@ -31,7 +31,7 @@ def get_account_balance(api_key, secret_key):
     return response.json()
 
 
-def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage):
+def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage, trade_type='derivatives'):
     # Získání informací o zůstatku na účtu
     account_balance_response = get_account_balance(api_key, secret_key)
 
@@ -45,7 +45,13 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     # Vypočítání množství kryptoměny na základě zadaného procenta zůstatku
     trade_amount = float(account_balance) * (float(percentage) / 100)
 
-    endpoint = '/v2/private/order/create'
+    if trade_type == 'derivatives':
+        endpoint = '/v2/private/order/create'
+    elif trade_type == 'spot':
+        endpoint = '/v2/private/spot/order/create'
+    else:
+        return jsonify({"error": "Neplatný typ obchodu, použijte 'derivatives' nebo 'spot'"}), 400
+
     timestamp = int(time.time() * 1000)
 
     # Příprava dat pro požadavek
@@ -59,7 +65,6 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
         'timestamp': timestamp,
     }
 
-    # Vytvoření podpisu pro autentizaci
     data_string = '&'.join([f"{key}={urllib.parse.quote(str(value))}" for key, value in data.items()])
     sign = hmac.new(secret_key.encode(), data_string.encode(), hashlib.sha256).hexdigest()
 
@@ -71,8 +76,7 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     headers = {'Content-Type': 'application/json'}
     response = requests.post(BASE_URL + endpoint, json=data, headers=headers)
 
-    return response.json()
-
+    return response.json(), response.status_code
 
 
 @app.route('/', methods=['POST'])
@@ -87,13 +91,14 @@ def webhook():
         position = data['position']
         buy_leverage = data['buy_leverage']
         percentage = data['percentage']
+        trade_type = data.get('trade_type', 'derivatives')  # Defaultně bude obchodováno na derivatives
 
         # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
         if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
 
-         # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+        # Odeslání požadavku na platformu Bybit pro provedení obchodu
+        response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage, trade_type)
         print("Obchod byl proveden:")
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
