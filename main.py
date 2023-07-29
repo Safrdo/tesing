@@ -23,7 +23,7 @@ requests_logger.propagate = True
 
 
 def get_account_balance(api_key, secret_key):
-    endpoint = '/v2/private/wallet/balance'
+    endpoint = '/v3/private/wallet/balance'
     timestamp = int(time.time() * 1000)
 
     data = {
