@@ -63,4 +63,5 @@ def webhook():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Spuštění aplikace s Gunicorn serverem na veřejné adrese a portu
+    app.run(host='0.0.0.0', port=80)
