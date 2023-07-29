@@ -42,7 +42,7 @@ def get_account_balance(api_key, secret_key):
 
     # Check if the request was successful (status code 200) and return the JSON data
     if response.status_code == 200:
-        return response.json()
+        return response
     else:
         # If the request failed, you can handle the error here, e.g., print the error message
         print("Error: Failed to get account balance.")
