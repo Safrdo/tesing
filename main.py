@@ -121,16 +121,25 @@ def webhook():
         # Odeslání požadavku na platformu Bybit pro provedení obchodu
         response_data, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
         logger.debug("Odpověď z Bybit API:")
-        logger.debug(response_data)  # Zde jsme upravili výpis odpovědi z Bybit API
+        logger.debug(response_data)
+
+        # Zde můžeme ověřit, zda je 'response_data' ve formátu JSON, pokud ne, vypíšeme ho jako text
+        if isinstance(response_data, dict):
+            logger.debug("Odpověď z Bybit API (JSON):")
+            logger.debug(response_data)
+        else:
+            logger.debug("Odpověď z Bybit API (text):")
+            logger.debug(response_data)
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
         if status_code == 200:
             return jsonify({"message": "Obchod byl proveden"}), 200
         else:
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
-
+            
     except Exception as e:
         logger.exception("Došlo k chybě:")
+        traceback.print_exc()  # Vytiskneme traceback, aby nám poskytl podrobnější informace o chybě
         return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
 
