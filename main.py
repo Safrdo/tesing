@@ -4,10 +4,20 @@ import hmac
 import time
 import requests
 import urllib.parse
+import logging
 
 BASE_URL = 'https://api.bybit.com'
 
 app = Flask(__name__)
+
+# Konfigurace logování
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Získání loggeru pro knihovnu 'requests'
+requests_logger = logging.getLogger('requests')
+requests_logger.setLevel(logging.DEBUG)
+requests_logger.propagate = True
 
 
 def get_account_balance(api_key, secret_key):
@@ -110,8 +120,8 @@ def webhook():
 
         # Odeslání požadavku na platformu Bybit pro provedení obchodu
         response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
-        print("Odpověď z Bybit API:")
-        print(response)
+        logger.debug("Odpověď z Bybit API:")
+        logger.debug(response)
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
         if status_code == 200:
@@ -120,9 +130,9 @@ def webhook():
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
     except Exception as e:
-        print("Došlo k chybě:")
-        print(str(e))
+        logger.exception("Došlo k chybě:")
         return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
+
 
 
 if __name__ == '__main__':
