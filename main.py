@@ -3,6 +3,8 @@ import hashlib
 import hmac
 import time
 import requests
+import urllib.parse
+
 
 BASE_URL = 'https://api.bybit.com'
 
@@ -25,7 +27,7 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage):
     }
 
     # Vytvoření podpisu pro autentizaci
-    data_string = '&'.join([f"{key}={value}" for key, value in data.items()])
+    data_string = '&'.join([f"{key}={urllib.parse.quote(str(value))}" for key, value in data.items()])
     sign = hmac.new(secret_key.encode(), data_string.encode(), hashlib.sha256).hexdigest()
 
     # Přidání podpisu a API klíče do datového objektu
