@@ -5,6 +5,8 @@ import time
 import requests
 import urllib.parse
 import logging
+import traceback
+
 
 BASE_URL = 'https://api.bybit.com'
 
@@ -139,9 +141,8 @@ def webhook():
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
             
     except Exception as e:
-        logger.exception("Došlo k chybě:")
-        traceback.print_exc()  # Vytiskneme traceback, aby nám poskytl podrobnější informace o chybě
-        return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
+        traceback.print_exc()  # Print the traceback for detailed error information
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 
 
