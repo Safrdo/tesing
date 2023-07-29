@@ -97,17 +97,19 @@ def webhook():
         print(order_response)
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
-        if order_response.status_code == 200:
+        if status_code == 200:
             print(order_response.json())  # Vypsání kompletní odpovědi z Bybit API
             return jsonify({"message": "Obchod byl proveden"}), 200
         else:
             print(order_response.text)  # Vypsání kompletní odpovědi z Bybit API
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
+
             
-    except Exception as e:
+     except Exception as e:
         print("Došlo k chybě:")
         print(str(e))
         return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
+
 
 
 if __name__ == '__main__':
