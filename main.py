@@ -76,7 +76,7 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
 
 @app.route('/', methods=['POST'])
 def webhook():
-    try:
+     try:
         data = request.get_json()
 
         # Získání hodnot z TradingView alert message
