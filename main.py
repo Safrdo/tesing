@@ -92,10 +92,23 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     data['api_key'] = api_key
 
     # Odeslání požadavku na platformu Bybit
+    # Perform the API request to create the order
     headers = {'Content-Type': 'application/json'}
     response = requests.post(BASE_URL + endpoint, json=data, headers=headers)
 
-    return response.json(), response.status_code
+    # Check if the request was successful and return the response data
+    if response.status_code == 200:
+        if 'result' not in response.json() or not response.json()['result']:
+            # If the order creation was not successful, print an error message
+            print("Error: Failed to create order.")
+            return None
+        else:
+            # If the order was successfully created, return the response data
+            return response.json()
+    else:
+        # If the API request failed, print an error message
+        print("Error: API request failed.")
+        return None
 
 
 @app.route('/', methods=['POST'])
