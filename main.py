@@ -96,7 +96,14 @@ def webhook():
         print("Obchod byl proveden:")
         print(order_response)
 
-        return jsonify({"message": "Obchod byl proveden"}), 200
+        # Kontrola, zda se vrátil HTTP kód 200 OK
+        if order_response.status_code == 200:
+            print(order_response.json())  # Vypsání kompletní odpovědi z Bybit API
+            return jsonify({"message": "Obchod byl proveden"}), 200
+        else:
+            print(order_response.text)  # Vypsání kompletní odpovědi z Bybit API
+            return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
+            
     except Exception as e:
         print("Došlo k chybě:")
         print(str(e))
@@ -105,4 +112,4 @@ def webhook():
 
 if __name__ == '__main__':
     # Spuštění aplikace s Gunicorn serverem na veřejné adrese a portu
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=80)
