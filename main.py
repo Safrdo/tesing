@@ -91,17 +91,17 @@ def webhook():
         if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
 
-        # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        order_response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+         # Odeslání požadavku na platformu Bybit pro provedení obchodu
+        response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
         print("Obchod byl proveden:")
-        print(order_response)
+        print(response)
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
         if status_code == 200:
-            print(order_response.json())  # Vypsání kompletní odpovědi z Bybit API
+            print(response.json())  # Vypsání kompletní odpovědi z Bybit API
             return jsonify({"message": "Obchod byl proveden"}), 200
         else:
-            print(order_response.text)  # Vypsání kompletní odpovědi z Bybit API
+            print(response.content)  # Vypsání kompletní textové odpovědi z Bybit API
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
 
