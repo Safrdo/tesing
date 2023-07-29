@@ -40,7 +40,13 @@ def get_account_balance(api_key, secret_key):
     headers = {'Content-Type': 'application/json'}
     response = requests.get(BASE_URL + endpoint, params=data, headers=headers)
 
-    return response  # Return the entire response object, not just response.json()
+    # Check if the request was successful (status code 200) and return the JSON data
+    if response.status_code == 200:
+        return response.json()
+    else:
+        # If the request failed, you can handle the error here, e.g., print the error message
+        print("Error: Failed to get account balance.")
+        return None
 
 
 
