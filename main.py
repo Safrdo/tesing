@@ -39,7 +39,7 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage):
     return response.json()
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/', methods=['POST'])
 def webhook():
     data = request.get_json()
 
@@ -64,4 +64,4 @@ def webhook():
 
 if __name__ == '__main__':
     # Spuštění aplikace s Gunicorn serverem na veřejné adrese a portu
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=8080)
