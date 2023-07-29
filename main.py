@@ -55,6 +55,9 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     timestamp = int(time.time() * 1000)
 
     # Příprava dat pro požadavek
+    endpoint = '/v2/private/order/create'  # Přidáme definici proměnné endpoint zde
+    timestamp = int(time.time() * 1000)
+
     data = {
         'symbol': coin_pair,
         'side': position,
