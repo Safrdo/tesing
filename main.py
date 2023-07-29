@@ -76,26 +76,31 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
 
 @app.route('/', methods=['POST'])
 def webhook():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+    
+        # Získání hodnot z TradingView alert message
+        api_key = data['api_key']
+        secret_key = data['secret_key']
+        coin_pair = data['coin_pair']
+        position = data['position']
+        buy_leverage = data['buy_leverage']
+        percentage = data['percentage']
+    
+        # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
+        if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
+            return jsonify({"error": "Chybějící informace v alert message"}), 400
+    
+       # Odeslání požadavku na platformu Bybit pro provedení obchodu
+        order_response = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+        print("Obchod byl proveden:")
+        print(order_response)
 
-    # Získání hodnot z TradingView alert message
-    api_key = data['api_key']
-    secret_key = data['secret_key']
-    coin_pair = data['coin_pair']
-    position = data['position']
-    buy_leverage = data['buy_leverage']
-    percentage = data['percentage']
-
-    # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
-    if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
-        return jsonify({"error": "Chybějící informace v alert message"}), 400
-
-    # Odeslání požadavku na platformu Bybit pro provedení obchodu
-    order_response = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
-    print("Obchod byl proveden:")
-    print(order_response)
-
-    return jsonify({"message": "Obchod byl proveden"}), 200
+        return jsonify({"message": "Obchod byl proveden"}), 200
+    except Exception as e:
+        print("Došlo k chybě:")
+        print(str(e))
+        return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
 
 if __name__ == '__main__':
