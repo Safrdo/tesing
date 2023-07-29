@@ -43,16 +43,15 @@ def get_account_balance(api_key, secret_key):
 
 
 def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage, trade_type='derivatives'):
-    logger.debug("Odpověď z Bybit API (text): " + account_balance_response.text)
     # Získání informací o zůstatku na účtu
-    account_balance_response = get_account_balance(api_key, secret_key)
+    response = get_account_balance(api_key, secret_key)
 
-      # Kontrola, zda byla odpověď úspěšná
-    if 'result' not in account_balance_response.json() or not account_balance_response.json()['result']:
+    # Kontrola, zda byla odpověď úspěšná
+    if 'result' not in response.json() or not response.json()['result']:
         return jsonify({"error": "Nepodařilo se získat informace o zůstatku účtu"}), 500
 
     # Získání hodnoty zůstatku v USDT (USD Tether)
-    account_balance = account_balance_response.json()['result']['USDT']['equity']
+    account_balance = response.json()['result']['USDT']['equity']
 
     # Vypočítání množství kryptoměny na základě zadaného procenta zůstatku
     trade_amount = float(account_balance) * (float(percentage) / 100)
