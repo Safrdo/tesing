@@ -10,18 +10,51 @@ BASE_URL = 'https://api.bybit.com'
 
 app = Flask(__name__)
 
+def get_account_balance(api_key, secret_key):
+    endpoint = '/v2/private/wallet/balance'
+    timestamp = int(time.time() * 1000)
 
-def create_order(api_key, secret_key, coin_pair, position, buy_leverage):
+    data = {
+        'coin': 'USDT',
+        'timestamp': timestamp,
+    }
+
+    data_string = '&'.join([f"{key}={urllib.parse.quote(str(value))}" for key, value in data.items()])
+    sign = hmac.new(secret_key.encode(), data_string.encode(), hashlib.sha256).hexdigest()
+
+    data['sign'] = sign
+    data['api_key'] = api_key
+
+    headers = {'Content-Type': 'application/json'}
+    response = requests.get(BASE_URL + endpoint, params=data, headers=headers)
+
+    return response.json()
+
+
+def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage):
+    # Získání informací o zůstatku na účtu
+    account_balance_response = get_account_balance(api_key, secret_key)
+
+    # Kontrola, zda byla odpověď úspěšná
+    if 'result' not in account_balance_response or not account_balance_response['result']:
+        return jsonify({"error": "Nepodařilo se získat informace o zůstatku účtu"}), 500
+
+    # Získání hodnoty zůstatku v USDT (USD Tether)
+    account_balance = account_balance_response['result']['USDT']['equity']
+
+    # Vypočítání množství kryptoměny na základě zadaného procenta zůstatku
+    trade_amount = float(account_balance) * (float(percentage) / 100)
+
     endpoint = '/v2/private/order/create'
     timestamp = int(time.time() * 1000)
 
-    # Připrava dat pro požadavek
+    # Příprava dat pro požadavek
     data = {
         'symbol': coin_pair,
         'side': position,
         'leverage': int(buy_leverage),
-        'order_type': 'Market',  # Můžete použít i 'Limit' podle vašich požadavků
-        'qty': 1,  # Počet kryptoměn, které chcete nakoupit/prodat
+        'order_type': 'Market',
+        'qty': trade_amount,  # Použití vypočteného množství kryptoměny pro obchod
         'time_in_force': 'GoodTillCancel',
         'timestamp': timestamp,
     }
@@ -51,13 +84,14 @@ def webhook():
     coin_pair = data['coin_pair']
     position = data['position']
     buy_leverage = data['buy_leverage']
+    percentage = data['percentage']
 
     # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
-    if not api_key or not secret_key or not coin_pair or not position or not buy_leverage:
+    if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
         return jsonify({"error": "Chybějící informace v alert message"}), 400
 
     # Odeslání požadavku na platformu Bybit pro provedení obchodu
-    order_response = create_order(api_key, secret_key, coin_pair, position, buy_leverage)
+    order_response = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
     print("Obchod byl proveden:")
     print(order_response)
 
