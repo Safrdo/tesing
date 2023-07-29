@@ -104,7 +104,7 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
             return None
         else:
             # If the order was successfully created, return the response data
-            return response.json()
+            return response
     else:
         # If the API request failed, print an error message
         print("Error: API request failed.")
