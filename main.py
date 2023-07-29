@@ -119,9 +119,9 @@ def webhook():
             return jsonify({"error": "Neplatná akce, použijte 'open_long', 'close_long', 'open_short' nebo 'close_short'"}), 400
 
         # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+        response_data, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
         logger.debug("Odpověď z Bybit API:")
-        logger.debug(response.json())
+        logger.debug(response_data)  # Zde jsme upravili výpis odpovědi z Bybit API
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
         if status_code == 200:
