@@ -100,10 +100,17 @@ def webhook():
         if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
 
-         # Odeslání požadavku na platformu Bybit
+        # Odeslání požadavku na platformu Bybit pro provedení obchodu
+        if trade_type == 'derivatives':
+            endpoint = '/v2/private/order/create'
+        elif trade_type == 'spot':
+            endpoint = '/v2/private/spot/order/create'
+        else:
+            return jsonify({"error": "Neplatný typ obchodu, použijte 'derivatives' nebo 'spot'"}), 400
+
         headers = {'Content-Type': 'application/json'}
         response = requests.post(BASE_URL + endpoint, json=data, headers=headers)
-    
+
         # Zde upravujeme zpracování odpovědi
         if response.headers['content-type'] == 'application/json':
             response_json = response.json()
