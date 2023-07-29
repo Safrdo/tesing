@@ -38,7 +38,8 @@ def get_account_balance(api_key, secret_key):
     headers = {'Content-Type': 'application/json'}
     response = requests.get(BASE_URL + endpoint, params=data, headers=headers)
 
-    return response.json()
+    return response  # Return the entire response object, not just response.json()
+
 
 
 def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage, trade_type='derivatives'):
