@@ -91,13 +91,17 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     data['sign'] = sign
     data['api_key'] = api_key
 
-     # Odeslání požadavku na platformu Bybit
+    # Odeslání požadavku na platformu Bybit
     headers = {'Content-Type': 'application/json'}
     response = requests.post(BASE_URL + endpoint, json=data, headers=headers)
-    
+
     # Zde získáme JSON odpověď z API a převedeme ji na slovník
     response_data = response.json()
-    
+
+    # Vypište obsah odpovědi z API, abychom zjistili, co nám vrací
+    print("Odpověď z Bybit API:")
+    print(response_data)
+
     # Kontrola, zda byla objednávka úspěšně vytvořena
     if 'result' not in response_data or not response_data['result']:
         # If the order creation was not successful, print an error message
