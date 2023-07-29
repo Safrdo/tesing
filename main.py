@@ -47,12 +47,12 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     # Získání informací o zůstatku na účtu
     account_balance_response = get_account_balance(api_key, secret_key)
 
-    # Kontrola, zda byla odpověď úspěšná
-    if 'result' not in account_balance_response or not account_balance_response['result']:
+      # Kontrola, zda byla odpověď úspěšná
+    if 'result' not in account_balance_response.json() or not account_balance_response.json()['result']:
         return jsonify({"error": "Nepodařilo se získat informace o zůstatku účtu"}), 500
 
     # Získání hodnoty zůstatku v USDT (USD Tether)
-    account_balance = account_balance_response['result']['USDT']['equity']
+    account_balance = account_balance_response.json()['result']['USDT']['equity']
 
     # Vypočítání množství kryptoměny na základě zadaného procenta zůstatku
     trade_amount = float(account_balance) * (float(percentage) / 100)
