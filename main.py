@@ -5,10 +5,10 @@ import time
 import requests
 import urllib.parse
 
-
 BASE_URL = 'https://api.bybit.com'
 
 app = Flask(__name__)
+
 
 def get_account_balance(api_key, secret_key):
     endpoint = '/v2/private/wallet/balance'
@@ -78,7 +78,7 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
 def webhook():
     try:
         data = request.get_json()
-    
+
         # Získání hodnot z TradingView alert message
         api_key = data['api_key']
         secret_key = data['secret_key']
@@ -86,13 +86,13 @@ def webhook():
         position = data['position']
         buy_leverage = data['buy_leverage']
         percentage = data['percentage']
-    
+
         # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
         if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
-    
-       # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        order_response = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+
+        # Odeslání požadavku na platformu Bybit pro provedení obchodu
+        order_response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
         print("Obchod byl proveden:")
         print(order_response)
 
@@ -104,12 +104,11 @@ def webhook():
             print(order_response.text)  # Vypsání kompletní odpovědi z Bybit API
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
-            
-     except Exception as e:
+
+    except Exception as e:
         print("Došlo k chybě:")
         print(str(e))
         return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
-
 
 
 if __name__ == '__main__':
