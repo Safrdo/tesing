@@ -48,16 +48,13 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     if trade_type == 'derivatives':
         endpoint = '/v2/private/order/create'
     elif trade_type == 'spot':
-        endpoint = '/v2/private/spot/order/create'
+        return jsonify({"error": "Není podporováno obchodování na spot (mimoderivátech)"}), 400
     else:
         return jsonify({"error": "Neplatný typ obchodu, použijte 'derivatives' nebo 'spot'"}), 400
 
     timestamp = int(time.time() * 1000)
 
     # Příprava dat pro požadavek
-    endpoint = '/v2/private/order/create'  # Přidáme definici proměnné endpoint zde
-    timestamp = int(time.time() * 1000)
-
     data = {
         'symbol': coin_pair,
         'side': position,
@@ -91,36 +88,36 @@ def webhook():
         api_key = data['api_key']
         secret_key = data['secret_key']
         coin_pair = data['coin_pair']
-        position = data['position']
+        action = data['action']  # Možnosti: 'open_long', 'close_long', 'open_short', 'close_short'
         buy_leverage = data['buy_leverage']
         percentage = data['percentage']
-        trade_type = data.get('trade_type', 'derivatives')  # Defaultně bude obchodováno na derivatives
 
         # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
-        if not api_key or not secret_key or not coin_pair or not position or not buy_leverage or not percentage:
+        if not api_key or not secret_key or not coin_pair or not action or not buy_leverage or not percentage:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
 
-         # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        if trade_type == 'derivatives':
-            endpoint = '/v2/private/order/create'
-        elif trade_type == 'spot':
-            endpoint = '/v2/private/spot/order/create'
+        # Rozlišení pozice (long nebo short) a akce (otevření nebo uzavření)
+        if action == 'open_long':
+            position = 'Buy'
+        elif action == 'close_long':
+            position = 'Sell'
+        elif action == 'open_short':
+            position = 'Sell'
+        elif action == 'close_short':
+            position = 'Buy'
         else:
-            return jsonify({"error": "Neplatný typ obchodu, použijte 'derivatives' nebo 'spot'"}), 400
+            return jsonify({"error": "Neplatná akce, použijte 'open_long', 'close_long', 'open_short' nebo 'close_short'"}), 400
 
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(BASE_URL + endpoint, json=data, headers=headers)
+        # Odeslání požadavku na platformu Bybit pro provedení obchodu
+        response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+        print("Odpověď z Bybit API:")
+        print(response)
 
-        # Zde upravujeme zpracování odpovědi
-        if response.headers['content-type'] == 'application/json':
-            response_json = response.json()
-            print("Odpověď z Bybit API:")
-            print(response_json)  # Výstup do konzole s odpovědí z Bybit API
-            return response_json, response.status_code
+        # Kontrola, zda se vrátil HTTP kód 200 OK
+        if status_code == 200:
+            return jsonify({"message": "Obchod byl proveden"}), 200
         else:
-            print("Odpověď z Bybit API:")
-            print(response.content)  # Výstup do konzole s textovou odpovědí z Bybit API
-            return response.content, response.status_code
+            return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
     except Exception as e:
         print("Došlo k chybě:")
