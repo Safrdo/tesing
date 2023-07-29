@@ -42,6 +42,7 @@ def get_account_balance(api_key, secret_key):
 
 
 def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage, trade_type='derivatives'):
+    logger.debug("Odpověď z Bybit API (text): " + account_balance_response.text)
     # Získání informací o zůstatku na účtu
     account_balance_response = get_account_balance(api_key, secret_key)
 
