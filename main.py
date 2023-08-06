@@ -5,8 +5,6 @@ import time
 import requests
 import urllib.parse
 import logging
-import traceback
-
 
 BASE_URL = 'https://api.bybit.com'
 
@@ -23,7 +21,7 @@ requests_logger.propagate = True
 
 
 def get_account_balance(api_key, secret_key):
-    endpoint = '/v5/account/wallet-balance'
+    endpoint = '/v2/private/wallet/balance'
     timestamp = int(time.time() * 1000)
 
     data = {
@@ -40,19 +38,11 @@ def get_account_balance(api_key, secret_key):
     headers = {'Content-Type': 'application/json'}
     response = requests.get(BASE_URL + endpoint, params=data, headers=headers)
 
-    # Check if the request was successful (status code 200) and return the JSON data
-    if response.status_code == 200:
-        return response
-    else:
-        # If the request failed, you can handle the error here, e.g., print the error message
-        print("Error: Failed to get account balance.")
-        return None
+    return response.json()
 
 
-
-def create_order(api_key, secret_key, coin_pair, position, trade_type='derivatives'):
+def create_order(api_key, secret_key, coin_pair, position, buy_leverage, trade_amount, trade_type='derivatives'):
     # Fixed trade amount of 10 USDT
-    trade_amount = 1.0
 
     if trade_type == 'derivatives':
         endpoint = '/v2/private/order/create'
@@ -67,6 +57,7 @@ def create_order(api_key, secret_key, coin_pair, position, trade_type='derivativ
     data = {
         'symbol': coin_pair,
         'side': position,
+        'leverage': int(buy_leverage),
         'order_type': 'Market',
         'qty': trade_amount,  # Fixed trade amount of 10 USDT
         'time_in_force': 'GoodTillCancel',
@@ -84,21 +75,11 @@ def create_order(api_key, secret_key, coin_pair, position, trade_type='derivativ
     headers = {'Content-Type': 'application/json'}
     response = requests.post(BASE_URL + endpoint, json=data, headers=headers)
 
-    # Zde získáme JSON odpověď z API a převedeme ji na slovník
-    response_data = response.json()
+    # Print the raw response content for debugging
+    print("Raw Response from Bybit API:")
+    print(response.content)
 
-    # Vypište obsah odpovědi z API, abychom zjistili, co nám vrací
-    print("Odpověď z Bybit API:")
-    print(response_data)
-
-    # Kontrola, zda byla objednávka úspěšně vytvořena
-    if 'result' not in response_data or not response_data['result']:
-        # If the order creation was not successful, print an error message
-        print("Error: Failed to create order.")
-        return None
-    else:
-        # If the order was successfully created, return the response data
-        return response_data
+    return response.json(), response.status_code
 
 
 @app.route('/', methods=['POST'])
@@ -111,10 +92,11 @@ def webhook():
         secret_key = data['secret_key']
         coin_pair = data['coin_pair']
         action = data['action']  # Možnosti: 'open_long', 'close_long', 'open_short', 'close_short'
-        percentage = data['percentage']
+        buy_leverage = data['buy_leverage']
+        trade_amount = data['trade_amount']
 
         # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
-        if not api_key or not secret_key or not coin_pair or not action or not percentage:
+        if not api_key or not secret_key or not coin_pair or not action or not buy_leverage or not trade_amount:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
 
         # Rozlišení pozice (long nebo short) a akce (otevření nebo uzavření)
@@ -130,27 +112,19 @@ def webhook():
             return jsonify({"error": "Neplatná akce, použijte 'open_long', 'close_long', 'open_short' nebo 'close_short'"}), 400
 
         # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        response_data, status_code = create_order(api_key, secret_key, coin_pair, position, percentage)
+        response, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, trade_amount)
         logger.debug("Odpověď z Bybit API:")
-        logger.debug(response_data)
-
-        # Zde můžeme ověřit, zda je 'response_data' ve formátu JSON, pokud ne, vypíšeme ho jako text
-        if isinstance(response_data, dict):
-            logger.debug("Odpověď z Bybit API (JSON):")
-            logger.debug(response_data)
-        else:
-            logger.debug("Odpověď z Bybit API (text):")
-            logger.debug(response_data)
+        logger.debug(response.content)
 
         # Kontrola, zda se vrátil HTTP kód 200 OK
         if status_code == 200:
             return jsonify({"message": "Obchod byl proveden"}), 200
         else:
             return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
-            
+
     except Exception as e:
-        traceback.print_exc()  # Print the traceback for detailed error information
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        logger.exception("Došlo k chybě:")
+        return jsonify({"error": "Došlo k chybě při provádění požadavku"}), 500
 
 
 
