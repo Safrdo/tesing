@@ -50,7 +50,7 @@ def get_account_balance(api_key, secret_key):
 
 
 
-def create_order(api_key, secret_key, coin_pair, position, buy_leverage, trade_type='derivatives'):
+def create_order(api_key, secret_key, coin_pair, position, trade_type='derivatives'):
     # Fixed trade amount of 10 USDT
     trade_amount = 1.0
 
@@ -130,7 +130,7 @@ def webhook():
             return jsonify({"error": "Neplatná akce, použijte 'open_long', 'close_long', 'open_short' nebo 'close_short'"}), 400
 
         # Odeslání požadavku na platformu Bybit pro provedení obchodu
-        response_data, status_code = create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage)
+        response_data, status_code = create_order(api_key, secret_key, coin_pair, position, percentage)
         logger.debug("Odpověď z Bybit API:")
         logger.debug(response_data)
 
