@@ -50,19 +50,9 @@ def get_account_balance(api_key, secret_key):
 
 
 
-def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percentage, trade_type='derivatives'):
-    # Získání informací o zůstatku na účtu
-    response = get_account_balance(api_key, secret_key)
-
-    # Kontrola, zda byla odpověď úspěšná
-    if 'result' not in response.json() or not response.json()['result']:
-        return jsonify({"error": "Nepodařilo se získat informace o zůstatku účtu"}), 500
-
-    # Získání hodnoty zůstatku v USDT (USD Tether)
-    account_balance = response.json()['result']['USDT']['equity']
-
-    # Vypočítání množství kryptoměny na základě zadaného procenta zůstatku
-    trade_amount = float(account_balance) * (float(percentage) / 100)
+def create_order(api_key, secret_key, coin_pair, position, buy_leverage, trade_type='derivatives'):
+    # Fixed trade amount of 10 USDT
+    trade_amount = 1.0
 
     if trade_type == 'derivatives':
         endpoint = '/v2/private/order/create'
@@ -77,9 +67,8 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, percent
     data = {
         'symbol': coin_pair,
         'side': position,
-        'leverage': int(buy_leverage),
         'order_type': 'Market',
-        'qty': trade_amount,  # Použití vypočteného množství kryptoměny pro obchod
+        'qty': trade_amount,  # Fixed trade amount of 10 USDT
         'time_in_force': 'GoodTillCancel',
         'timestamp': timestamp,
     }
@@ -122,11 +111,10 @@ def webhook():
         secret_key = data['secret_key']
         coin_pair = data['coin_pair']
         action = data['action']  # Možnosti: 'open_long', 'close_long', 'open_short', 'close_short'
-        buy_leverage = data['buy_leverage']
         percentage = data['percentage']
 
         # Kontrola, zda jsou API klíče a ostatní hodnoty vyplněny
-        if not api_key or not secret_key or not coin_pair or not action or not buy_leverage or not percentage:
+        if not api_key or not secret_key or not coin_pair or not action or not percentage:
             return jsonify({"error": "Chybějící informace v alert message"}), 400
 
         # Rozlišení pozice (long nebo short) a akce (otevření nebo uzavření)
