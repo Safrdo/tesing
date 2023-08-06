@@ -79,7 +79,21 @@ def create_order(api_key, secret_key, coin_pair, position, buy_leverage, trade_a
     print("Raw Response from Bybit API:")
     print(response.content)
 
-    return response.json(), response.status_code
+    # Zde získáme JSON odpověď z API a převedeme ji na slovník
+    response_data = response.json()
+
+    # Vypište obsah odpovědi z API, abychom zjistili, co nám vrací
+    print("Odpověď z Bybit API:")
+    print(response_data)
+
+    # Kontrola, zda byla objednávka úspěšně vytvořena
+    if 'result' not in response_data or not response_data['result']:
+        # If the order creation was not successful, print an error message
+        print("Error: Failed to create order.")
+        return None
+    else:
+        # If the order was successfully created, return the response data
+        return response_data
 
 
 @app.route('/', methods=['POST'])
